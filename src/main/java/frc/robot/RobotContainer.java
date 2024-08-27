@@ -6,10 +6,12 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.autos.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
+import frc.robot.Constants;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -27,11 +29,10 @@ public class RobotContainer {
     private final int rotationAxis = XboxController.Axis.kRightX.value;
 
     /* Driver Buttons */
-    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
     private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
 
     /* Subsystems */
-    private final Swerve s_Swerve = new Swerve();
+    private final Swerve s_Swerve = new Swerve(Constants.Swerve.driveTrainConstants, Constants.Swerve.FrontLeft, Constants.Swerve.FrontRight, Constants.Swerve.BackLeft, Constants.Swerve.BackRight);
 
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -56,9 +57,18 @@ public class RobotContainer {
      * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
      * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
      */
+
+     private final JoystickButton qs_fd = new JoystickButton(driver, XboxController.Button.kA.value);
+     private final JoystickButton qs_bd = new JoystickButton(driver, XboxController.Button.kB.value);
+     private final JoystickButton d_fd = new JoystickButton(driver, XboxController.Button.kY.value);
+     private final JoystickButton d_bd = new JoystickButton(driver, XboxController.Button.kX.value);
+
     private void configureButtonBindings() {
-        /* Driver Buttons */
-        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
+        qs_fd.whileTrue(s_Swerve.runDriveQuasiTest(Direction.kForward));
+        qs_bd.whileTrue(s_Swerve.runDriveQuasiTest(Direction.kReverse));
+    
+        d_fd.whileTrue(s_Swerve.runDriveDynamTest(Direction.kForward));
+        d_bd.whileTrue(s_Swerve.runDriveDynamTest(Direction.kReverse));
     }
 
     /**

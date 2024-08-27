@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants.SteerFeedbackType;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -10,7 +12,11 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.lib.util.COTSTalonFXSwerveConstants;
-import frc.lib.util.SwerveModuleConstants;
+
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstantsFactory;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.ClosedLoopOutputType;
 
 public final class Constants {
     public static final double stickDeadband = 0.1;
@@ -97,9 +103,7 @@ public final class Constants {
             public static final int driveMotorID = 1;
             public static final int angleMotorID = 0;
             public static final int canCoderID = 0;
-            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(146.98);
-            public static final SwerveModuleConstants constants = 
-                new SwerveModuleConstants(driveMotorID, angleMotorID, canCoderID, angleOffset);
+            public static final double angleOffset = Rotation2d.fromDegrees(146.98).getRadians();
         }
 
         /* Front Right Module - Module 1 */
@@ -107,9 +111,7 @@ public final class Constants {
             public static final int driveMotorID = 3;
             public static final int angleMotorID = 2;
             public static final int canCoderID = 1;
-            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(125.59);
-            public static final SwerveModuleConstants constants = 
-                new SwerveModuleConstants(driveMotorID, angleMotorID, canCoderID, angleOffset);
+            public static final double angleOffset = Rotation2d.fromDegrees(125.59).getRadians();
         }
         
         /* Back Left Module - Module 2 */
@@ -117,9 +119,7 @@ public final class Constants {
             public static final int driveMotorID = 7;
             public static final int angleMotorID = 6;
             public static final int canCoderID = 3;
-            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(21.88);
-            public static final SwerveModuleConstants constants = 
-                new SwerveModuleConstants(driveMotorID, angleMotorID, canCoderID, angleOffset);
+            public static final double angleOffset = Rotation2d.fromDegrees(21.88).getRadians();
         }
 
         /* Back Right Module - Module 3 */
@@ -127,10 +127,45 @@ public final class Constants {
             public static final int driveMotorID = 5;
             public static final int angleMotorID = 4;
             public static final int canCoderID = 2;
-            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(89.82);
-            public static final SwerveModuleConstants constants = 
-                new SwerveModuleConstants(driveMotorID, angleMotorID, canCoderID, angleOffset);
+            public static final double angleOffset = Rotation2d.fromDegrees(89.82).getRadians();
         }
+
+        public static final SwerveDrivetrainConstants driveTrainConstants = new SwerveDrivetrainConstants().withCANbusName("rio").withPigeon2Id(Constants.Swerve.pigeonID);
+
+        private static final Slot0Configs steerGains = new Slot0Configs()
+            .withKP(angleKP).withKI(angleKI).withKD(angleKD) 
+            .withKS(driveKA).withKV(driveKV).withKA(driveKA);
+
+        private static final Slot0Configs driveGains = new Slot0Configs()
+            .withKP(driveKP).withKI(driveKI).withKD(driveKD) 
+            .withKS(driveKA).withKV(driveKV).withKA(driveKA);
+
+        private static final SwerveModuleConstantsFactory ConstantCreator = new SwerveModuleConstantsFactory()
+            .withDriveMotorGearRatio(driveGearRatio)
+            .withSteerMotorGearRatio(angleGearRatio)
+            .withWheelRadius(chosenModule.wheelDiameter/2)
+            .withSlipCurrent(300)
+            .withSteerMotorGains(steerGains)
+            .withDriveMotorGains(driveGains)
+            .withSteerMotorClosedLoopOutput(ClosedLoopOutputType.Voltage)
+            .withDriveMotorClosedLoopOutput(ClosedLoopOutputType.Voltage)
+            .withSpeedAt12VoltsMps(3.3)
+            .withSteerInertia(0.00001)
+            .withDriveInertia(0.001)
+            .withSteerFrictionVoltage(0.25)
+            .withDriveFrictionVoltage(0.25)
+            .withFeedbackSource(SteerFeedbackType.RemoteCANcoder)
+            .withCouplingGearRatio((150.0 / 7.0) / 1.0)
+            .withSteerMotorInverted(false);
+
+        public static final SwerveModuleConstants FrontLeft = ConstantCreator.createModuleConstants(
+            Mod0.angleMotorID, Mod0.driveMotorID, Mod0.canCoderID, Mod0.angleOffset, Units.inchesToMeters(12.25), Units.inchesToMeters(12.25), false);
+        public static final SwerveModuleConstants FrontRight = ConstantCreator.createModuleConstants(
+            Mod1.angleMotorID, Mod1.driveMotorID, Mod1.canCoderID, Mod1.angleOffset, Units.inchesToMeters(12.25), Units.inchesToMeters(-12.25), false);
+        public static final SwerveModuleConstants BackLeft = ConstantCreator.createModuleConstants(
+            Mod2.angleMotorID, Mod2.driveMotorID, Mod2.canCoderID, Mod2.angleOffset, Units.inchesToMeters(-12.25), Units.inchesToMeters(12.25), false);
+        public static final SwerveModuleConstants BackRight = ConstantCreator.createModuleConstants(
+            Mod3.angleMotorID, Mod3.driveMotorID, Mod3.canCoderID, Mod3.angleOffset, Units.inchesToMeters(-12.25), Units.inchesToMeters(-12.25), false);
     }
 
     //Will have to wait until we build the robot
@@ -149,4 +184,5 @@ public final class Constants {
             new TrapezoidProfile.Constraints(
                 kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
     }
+    
 }
